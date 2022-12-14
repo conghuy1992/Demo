@@ -25,24 +25,14 @@ class _PickImageState extends State<PickImage> {
     );
   }
 
-  _displayCropImage(XFile? pickedFile) {
-    if (pickedFile == null) return;
-    _cropImage(
-      pickedFile: pickedFile,
-      onCroppedFile: (croppedFile) {
-        setState(() {
-          _croppedFile = croppedFile;
-        });
-      },
-    );
-  }
-
   Widget _body() {
     _onPressed() async {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => TakePictureScreen(onPickedFile: (pickedFile) {
-            _displayCropImage(pickedFile);
+          builder: (context) => TakePictureScreen(onCroppedFile: (croppedFile) {
+            setState(() {
+              _croppedFile = croppedFile;
+            });
           }),
         ),
       );
@@ -51,16 +41,13 @@ class _PickImageState extends State<PickImage> {
     _buildImage() {
       if (_croppedFile != null) {
         return Center(
-          child: InkWell(
-            onTap: _onPressed,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Card(
-                elevation: 4.0,
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: _image(),
-                ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Card(
+              elevation: 4.0,
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: _image(),
               ),
             ),
           ),
@@ -89,7 +76,15 @@ class _PickImageState extends State<PickImage> {
                 final pickedFile = await ImagePicker().pickImage(
                   source: ImageSource.gallery,
                 );
-                _displayCropImage(pickedFile);
+                if (pickedFile == null) return;
+                _cropImage(
+                  pickedFile: pickedFile,
+                  onCroppedFile: (croppedFile) {
+                    setState(() {
+                      _croppedFile = croppedFile;
+                    });
+                  },
+                );
               },
               icon: Icon(Icons.photo),
               label: Text("Photo"),
@@ -116,11 +111,11 @@ class _PickImageState extends State<PickImage> {
 
 // A screen that allows users to take a picture using a given camera.
 class TakePictureScreen extends StatefulWidget {
-  final Function(XFile?)? onPickedFile;
+  final Function(CroppedFile?)? onCroppedFile;
 
   const TakePictureScreen({
     Key? key,
-    required this.onPickedFile,
+    required this.onCroppedFile,
   }) : super(key: key);
 
   @override
@@ -188,8 +183,12 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 await _initializeControllerFuture;
                 final image = await _controller.takePicture();
                 if (!mounted) return;
-                widget.onPickedFile?.call(image);
-                Navigator.pop(context);
+                _cropImage(
+                    pickedFile: image,
+                    onCroppedFile: (c) {
+                      Navigator.pop(context);
+                      widget.onCroppedFile?.call(c);
+                    });
               } catch (e) {
                 print(e);
               }
