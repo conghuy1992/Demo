@@ -26,16 +26,17 @@ class _PickImageState extends State<PickImage> {
 
   Widget _body() {
     _onPressed() async {
-      dynamic croppedFile = await Navigator.of(context).push(
+      Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => TakePictureScreen(),
+          builder: (context) => TakePictureScreen(onCroppedFile: (croppedFile) {
+            if (croppedFile != null) {
+              setState(() {
+                _croppedFile = croppedFile;
+              });
+            }
+          }),
         ),
       );
-      if (croppedFile != null) {
-        setState(() {
-          _croppedFile = croppedFile;
-        });
-      }
     }
 
     if (_croppedFile != null) {
@@ -81,6 +82,13 @@ class _PickImageState extends State<PickImage> {
 
 // A screen that allows users to take a picture using a given camera.
 class TakePictureScreen extends StatefulWidget {
+  final Function(CroppedFile?)? onCroppedFile;
+
+  const TakePictureScreen({
+    Key? key,
+    this.onCroppedFile,
+  }) : super(key: key);
+
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
 }
@@ -142,6 +150,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             right: 0.0,
             left: 0.0,
             child: FloatingActionButton(
+              heroTag: null,
               onPressed: () async {
                 try {
                   await _initializeControllerFuture;
@@ -174,25 +183,28 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         ],
       );
     }
-    return DisplayPictureScreen(
+    return _DisplayPictureScreen(
       pickedFile: xFile,
+      onCroppedFile: widget.onCroppedFile,
     );
   }
 }
 
-class DisplayPictureScreen extends StatefulWidget {
+class _DisplayPictureScreen extends StatefulWidget {
   final XFile? pickedFile;
+  final Function(CroppedFile?)? onCroppedFile;
 
-  const DisplayPictureScreen({
+  const _DisplayPictureScreen({
     Key? key,
     required this.pickedFile,
+    this.onCroppedFile,
   }) : super(key: key);
 
   @override
-  _DisplayPictureScreen createState() => _DisplayPictureScreen();
+  State<_DisplayPictureScreen> createState() => _DisplayPictureScreenState();
 }
 
-class _DisplayPictureScreen extends State<DisplayPictureScreen> {
+class _DisplayPictureScreenState extends State<_DisplayPictureScreen> {
   XFile? _pickedFile;
   CroppedFile? _croppedFile;
 
@@ -220,12 +232,14 @@ class _DisplayPictureScreen extends State<DisplayPictureScreen> {
     if (_croppedFile != null || _pickedFile != null) {
       return _imageCard();
     } else {
-      return TakePictureScreen();
+      return TakePictureScreen(
+        onCroppedFile: widget.onCroppedFile,
+      );
     }
   }
 
   Widget _imageCard() {
-    return  Stack(
+    return Stack(
       children: [
         _image(),
         const SizedBox(height: 24.0),
@@ -263,6 +277,7 @@ class _DisplayPictureScreen extends State<DisplayPictureScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         FloatingActionButton(
+          heroTag: null,
           onPressed: () {
             _clear();
           },
@@ -274,6 +289,7 @@ class _DisplayPictureScreen extends State<DisplayPictureScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 32.0),
             child: FloatingActionButton(
+              heroTag: null,
               onPressed: () {
                 _cropImage();
               },
@@ -295,7 +311,7 @@ class _DisplayPictureScreen extends State<DisplayPictureScreen> {
         uiSettings: [
           AndroidUiSettings(
               toolbarTitle: 'Cropper',
-              toolbarColor: Colors.deepOrange,
+              toolbarColor: Colors.black,
               toolbarWidgetColor: Colors.white,
               initAspectRatio: CropAspectRatioPreset.original,
               lockAspectRatio: false),
@@ -304,7 +320,8 @@ class _DisplayPictureScreen extends State<DisplayPictureScreen> {
           ),
         ],
       );
-      Navigator.pop(context, croppedFile);
+      Navigator.pop(context);
+      widget.onCroppedFile?.call(croppedFile);
     }
   }
 
