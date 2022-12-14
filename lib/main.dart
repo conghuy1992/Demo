@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'Ex.dart';
 import 'camera/camera_ex.dart';
 
 void main() {
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
       ),
       // home: const MyHomePage(title: 'Flutter Demo Home Page'),
       home: PickImage(),
+      // home: Ex(),
     );
   }
 }

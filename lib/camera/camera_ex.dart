@@ -86,7 +86,7 @@ class TakePictureScreen extends StatefulWidget {
 
   const TakePictureScreen({
     Key? key,
-    this.onCroppedFile,
+    required this.onCroppedFile,
   }) : super(key: key);
 
   @override
@@ -218,13 +218,7 @@ class _DisplayPictureScreenState extends State<_DisplayPictureScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // appBar: AppBar(title: Text('title')),
-      body: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: _body()),
-        ],
-      ),
+      body: _body(),
     );
   }
 
@@ -239,66 +233,72 @@ class _DisplayPictureScreenState extends State<_DisplayPictureScreen> {
   }
 
   Widget _imageCard() {
-    return Stack(
-      children: [
-        _image(),
-        const SizedBox(height: 24.0),
-        Positioned(
-          bottom: 20.0,
-          right: 0.0,
-          left: 0.0,
-          child: _menu(),
-        ),
-      ],
+    return Container(
+      color: Colors.black,
+      width: double.infinity,
+      height: double.infinity,
+      child: Stack(
+        children: [
+          _buildImage(),
+          Positioned(
+            bottom: 20.0,
+            right: 0.0,
+            left: 0.0,
+            child: _menu(),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _image() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  Widget _imageDisplay(String path) {
+    return Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      height: double.infinity,
+      width: double.infinity,
+    );
+  }
+
+  Widget _buildImage() {
     if (_croppedFile != null) {
-      final path = _croppedFile!.path;
-      return Image.file(
-        File(path),
-        fit: BoxFit.cover,
-        height: double.infinity,
-        width: double.infinity,
-      );
+      return _imageDisplay(_croppedFile!.path);
     } else if (_pickedFile != null) {
-      final path = _pickedFile!.path;
-      return Image.file(File(path));
+      return _imageDisplay(_pickedFile!.path);
     } else {
       return const SizedBox.shrink();
     }
   }
 
   Widget _menu() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FloatingActionButton(
-          heroTag: null,
-          onPressed: () {
-            _clear();
-          },
-          backgroundColor: Colors.redAccent,
-          tooltip: 'Delete',
-          child: const Icon(Icons.delete),
-        ),
-        if (_croppedFile == null)
-          Padding(
-            padding: const EdgeInsets.only(left: 32.0),
-            child: FloatingActionButton(
-              heroTag: null,
-              onPressed: () {
-                _cropImage();
-              },
-              backgroundColor: const Color(0xFFBC764A),
-              tooltip: 'Crop',
-              child: const Icon(Icons.crop),
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            heroTag: null,
+            onPressed: () {
+              _clear();
+            },
+            backgroundColor: Colors.redAccent,
+            tooltip: 'Delete',
+            child: const Icon(Icons.delete),
+          ),
+          if (_croppedFile == null)
+            Padding(
+              padding: const EdgeInsets.only(left: 32.0),
+              child: FloatingActionButton(
+                heroTag: null,
+                onPressed: () {
+                  _cropImage();
+                },
+                backgroundColor: const Color(0xFFBC764A),
+                tooltip: 'Crop',
+                child: const Icon(Icons.crop),
+              ),
             ),
-          )
-      ],
+        ],
+      ),
     );
   }
 
