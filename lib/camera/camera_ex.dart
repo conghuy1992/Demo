@@ -25,21 +25,24 @@ class _PickImageState extends State<PickImage> {
     );
   }
 
+  _displayCropImage(XFile? pickedFile) {
+    if (pickedFile == null) return;
+    _cropImage(
+      pickedFile: pickedFile,
+      onCroppedFile: (croppedFile) {
+        setState(() {
+          _croppedFile = croppedFile;
+        });
+      },
+    );
+  }
+
   Widget _body() {
     _onPressed() async {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => TakePictureScreen(onPickedFile: (pickedFile) {
-            if (pickedFile != null) {
-              _cropImage(
-                pickedFile: pickedFile,
-                onCroppedFile: (croppedFile) {
-                  setState(() {
-                    _croppedFile = croppedFile;
-                  });
-                },
-              );
-            }
+            _displayCropImage(pickedFile);
           }),
         ),
       );
@@ -86,16 +89,7 @@ class _PickImageState extends State<PickImage> {
                 final pickedFile = await ImagePicker().pickImage(
                   source: ImageSource.gallery,
                 );
-                if (pickedFile != null) {
-                  _cropImage(
-                    pickedFile: pickedFile,
-                    onCroppedFile: (croppedFile) {
-                      setState(() {
-                        _croppedFile = croppedFile;
-                      });
-                    },
-                  );
-                }
+                _displayCropImage(pickedFile);
               },
               icon: Icon(Icons.photo),
               label: Text("Photo"),
