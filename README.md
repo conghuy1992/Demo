@@ -1,1 +1,1 @@
-# Demo
+# Bluetooth & crop image
